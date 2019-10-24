@@ -41,55 +41,61 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         tvlatitude = (TextView)findViewById(R.id.lat);
         tvlongitude = (TextView) findViewById(R.id.lon);
+////
+//        gettime();
+//        sendlocation();
+        check();
+    }
+    //Kiem tra toa do hien tai
+    private void gettime(){
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-ddhh:mm:ss");
         dateFormatter.setLenient(false);
         Date today = new Date();
         dt = dateFormatter.format(today);
-        check();
     }
-//    private void send(){
-//        try {
-//            SendLocation service = APIClient.getClient().create(SendLocation.class);
-//            Call<Post> userCall = service.getlistbusstop(imei,dt,latitude,longitude,altitude,angle,speed,loc_valid,params);
-//
-//            userCall.enqueue(new Callback<Post>() {
-//                @Override
-//                public void onResponse(Call<Post> call, Response<Post> response) {
-//                    //onSignupSuccess();
-//                    Log.d("onResponse", "" + response.body().toString());
-//                    if(response.isSuccessful()) {
-//                        Log.d("onResponse", "" + response.body().toString());
-//                    }else {
-//                        Toast.makeText(getApplicationContext(), "Failed!!!" , Toast.LENGTH_SHORT).show();
-//                    }
-//                }
-//                @Override
-//                public void onFailure(Call<Post> call, Throwable t) {
-//                    Log.d("Failed: ", t.toString());
-//                }
-//            });
-//        }catch (Exception e){
-//            Log.e("Failed: ",e.getMessage());
-//        }
-//    }
-    //Kiem tra toa do hien tai
+    private void sendlocation(){
+        LocationTracker tracker1 = new LocationTracker(MainActivity.this);
+        tvlatitude.setText("Vĩ độ: " + tracker1.getLatitude());
+        tvlongitude.setText("KInh độ: " + tracker1.getLongitude());
+        latitude = tracker1.getLatitude();
+        longitude = tracker1.getLongitude();
+        SendLocation service = APIClient.getClient().create(SendLocation.class);
+        Call<Post> userCall = service.getlistbusstop(imei,dt,latitude,longitude,altitude,angle,speed,loc_valid,params);
+
+        userCall.enqueue(new Callback<Post>() {
+            @Override
+            public void onResponse(Call<Post> call, Response<Post> response) {
+                //onSignupSuccess();
+                if (response.isSuccessful()) {
+                    Log.d("onResponse", "" + response.body().toString());
+                } else {
+                    Toast.makeText(getApplicationContext(), "Failed!!!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Post> call, Throwable t) {
+                Log.d("Failed: ", t.toString());
+            }
+        });
+    }
     private void check() {
-        CountDownTimer countDownTimer = new CountDownTimer(86400000, 2000) {
+        CountDownTimer countDownTimer = new CountDownTimer(86400000, 3000) {
             @Override
             public void onTick(long l) {
+                gettime();
                 LocationTracker tracker1 = new LocationTracker(MainActivity.this);
                 tvlatitude.setText("Vĩ độ: " + tracker1.getLatitude());
                 tvlongitude.setText("KInh độ: " + tracker1.getLongitude());
                 latitude = tracker1.getLatitude();
                 longitude = tracker1.getLongitude();
                 SendLocation service = APIClient.getClient().create(SendLocation.class);
-                Call<Post> userCall = service.getlistbusstop(imei,dt,latitude,longitude,altitude,angle,speed,loc_valid,pa);
+                Call<Post> userCall = service.getlistbusstop(imei,dt,latitude,longitude,altitude,angle,speed,loc_valid,params);
 
                 userCall.enqueue(new Callback<Post>() {
                     @Override
                     public void onResponse(Call<Post> call, Response<Post> response) {
                         //onSignupSuccess();
-                        Log.d("onResponse", "" + response.body().toString());
                         if (response.isSuccessful()) {
                             Log.d("onResponse", "" + response.body().toString());
                         } else {
