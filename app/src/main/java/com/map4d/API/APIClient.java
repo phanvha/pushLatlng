@@ -28,11 +28,8 @@ public class APIClient {
                 interceptor.intercept(chain);
                 Request request = chain.request();
                 String string = request.url().toString();
-                Log.e("Test, ",string);
-                //string = string.replace("%26", "=");
+                string = string.replace("%26", "=");
                 string = string.replace("%3D", "=");
-                Log.e("Test, ","after:  " + string);
-
                 Request newRequest = new Request.Builder()
                         .url(string)
                         .build();
