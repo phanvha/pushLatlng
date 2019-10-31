@@ -21,14 +21,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String TABLE_LOCATION = "LOCATION";
     private static final String ID_COLUMN = "id";
-    private static final String STATUS_COLUMN = "Status";
-    private static final String LATITUDE_COLUMN = "Latitude";
-    private static final String LONGITUDE_COLUMN = "Longitude";
+    private static final String IMEI_COLUMN = "imei";
+    private static final String DT_COLUMN = "dt";
+    private static final String ALTITUDE_COLUMN = "altitude";
+    private static final String ANGLE_COLUMN = "angle";
+    private static final String SPEED_COLUMN = "speed";
+    private static final String LOC_VALID_COLUMN = "loc_valid";
+    private static final String STATUS_COLUMN = "status";
+    private static final String PARAMS_COLUMN = "params";
+    private static final String LATITUDE_COLUMN = "latitude";
+    private static final String LONGITUDE_COLUMN = "longitude";
     private static final String CREATE_LOCATION_TABLE_SQL = "CREATE TABLE " + TABLE_LOCATION + " (" +
             ID_COLUMN + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-            STATUS_COLUMN + " TEXT ," +
+            IMEI_COLUMN + " TEXT ," +
+            DT_COLUMN + " TEXT ," +
             LATITUDE_COLUMN + " DOUBLE," +
-            LONGITUDE_COLUMN + " DOUBLE" +
+            LONGITUDE_COLUMN + " DOUBLE," +
+            ALTITUDE_COLUMN +"INT,"+
+            ANGLE_COLUMN + " INT ," +
+            SPEED_COLUMN + " INT ," +
+            LOC_VALID_COLUMN + " INT ," +
+            PARAMS_COLUMN + " TEXT ," +
+            STATUS_COLUMN + " TEXT " +
             ")";
     private static DatabaseHelper sInstance;
     public static DatabaseHelper getInstance(Context context) {
@@ -110,9 +124,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(STATUS_COLUMN, data.getStatus());
-        values.put(String.valueOf(LATITUDE_COLUMN), data.getLatitude());
-        values.put(String.valueOf(LONGITUDE_COLUMN), data.getLongitude());
-        int rowEffect = db.update(TABLE_LOCATION, values, ID_COLUMN + " = ?", new String[]{String.valueOf(data.getId())});
+        int rowEffect = db.update(TABLE_LOCATION, values, STATUS_COLUMN + " = ?", new String[]{data.getStatus()});
         db.close();
         return rowEffect;
     }

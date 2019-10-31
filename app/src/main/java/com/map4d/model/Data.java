@@ -9,9 +9,6 @@ public class Data {
     private Double latitude;
     private Double longitude;
 
-    public Data() {
-    }
-
     public Data(int id, String status, Double latitude, Double longitude) {
         this.id = id;
         this.status = status;

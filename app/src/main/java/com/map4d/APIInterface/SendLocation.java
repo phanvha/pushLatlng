@@ -24,7 +24,7 @@ public interface SendLocation {
     })
     @GET("/api/api_loc.php")
     Call<Post> getlistbusstop(
-            @Query("imei") String imei,
+            @Query("imei") String iâmei,
             @Query("dt") String dt,
             @Query("lat") Double lat,
             @Query("lng") Double lng,
