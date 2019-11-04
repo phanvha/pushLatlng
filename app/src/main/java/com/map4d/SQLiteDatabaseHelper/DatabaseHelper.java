@@ -33,16 +33,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String LONGITUDE_COLUMN = "longitude";
     private static final String CREATE_LOCATION_TABLE_SQL = "CREATE TABLE " + TABLE_LOCATION + " (" +
             ID_COLUMN + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-            IMEI_COLUMN + " TEXT ," +
-            DT_COLUMN + " TEXT ," +
+            STATUS_COLUMN + " TEXT, " +
             LATITUDE_COLUMN + " DOUBLE," +
             LONGITUDE_COLUMN + " DOUBLE," +
-            ALTITUDE_COLUMN +"INT,"+
-            ANGLE_COLUMN + " INT ," +
-            SPEED_COLUMN + " INT ," +
-            LOC_VALID_COLUMN + " INT ," +
-            PARAMS_COLUMN + " TEXT ," +
-            STATUS_COLUMN + " TEXT " +
+            DT_COLUMN + " TEXT " +
             ")";
     private static DatabaseHelper sInstance;
     public static DatabaseHelper getInstance(Context context) {
@@ -76,6 +70,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(STATUS_COLUMN, data.getStatus());
         values.put(LATITUDE_COLUMN, data.getLatitude());
         values.put(LONGITUDE_COLUMN, data.getLongitude());
+        values.put(DT_COLUMN, data.getTime());
         long rowId = db.insert(TABLE_LOCATION, null, values);
         db.close();
         if (rowId != -1)
@@ -86,10 +81,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public List<Data> getData(String status) {
         SQLiteDatabase db = getReadableDatabase();
         Data data = null;
-        Cursor cursor = db.query(TABLE_LOCATION, new String[]{ID_COLUMN, STATUS_COLUMN, LATITUDE_COLUMN, LONGITUDE_COLUMN}, STATUS_COLUMN + " = ?",
+        Cursor cursor = db.query(TABLE_LOCATION, new String[]{ID_COLUMN, STATUS_COLUMN, LATITUDE_COLUMN, LONGITUDE_COLUMN, DT_COLUMN}, STATUS_COLUMN + " = ?",
                 new String[]{status}, null, null, null);
         if (cursor != null && cursor.moveToFirst()) {
-            data = new Data(cursor.getInt(0), cursor.getString(1), cursor.getDouble(2),cursor.getDouble(3));
+            data = new Data(cursor.getInt(0), cursor.getString(1), cursor.getDouble(2),cursor.getDouble(3),cursor.getString(4));
             cursor.close();
         }
         db.close();
@@ -103,7 +98,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.rawQuery(sql, null);
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                words.add(new Data(cursor.getInt(0), cursor.getString(1), cursor.getDouble(2),cursor.getDouble(3)));
+                words.add(new Data(cursor.getInt(0), cursor.getString(1), cursor.getDouble(2),cursor.getDouble(3),cursor.getString(4)));
             } while (cursor.moveToNext());
             cursor.close();
         }

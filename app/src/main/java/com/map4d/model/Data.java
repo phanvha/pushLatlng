@@ -8,12 +8,22 @@ public class Data {
     private String status;
     private Double latitude;
     private Double longitude;
+    private String time;
 
-    public Data(int id, String status, Double latitude, Double longitude) {
+    public Data(int id, String status, Double latitude, Double longitude, String time ) {
         this.id = id;
         this.status = status;
         this.latitude = latitude;
         this.longitude = longitude;
+        this.time = time;
+    }
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
     }
 
     public int getId() {
