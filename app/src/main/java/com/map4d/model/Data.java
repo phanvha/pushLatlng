@@ -32,7 +32,7 @@ public class Data {
         this.status = status;
     }
 
-    public double getLatitude() {
+    public Double getLatitude() {
         return latitude;
     }
 

@@ -1,8 +1,12 @@
 package com.map4d.pushlatlngapp;
 
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.Manifest;
 import android.app.AlertDialog;
@@ -19,11 +23,14 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Message;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.material.navigation.NavigationView;
 import com.map4d.API.APIClient;
 import com.map4d.APIInterface.SendLocation;
 import com.map4d.SQLiteDatabaseHelper.DatabaseHelper;
@@ -51,7 +58,7 @@ import retrofit2.Response;
         Location location;
         private final int REQUEST_LOCATION = 200;
         private static final String TAG = "MainActivity";
-
+        private DrawerLayout mDrawerLayout;
         private int altitude = 100;
         private int angle = 45;
         private int speed = 60;
@@ -65,8 +72,57 @@ import retrofit2.Response;
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_main);
+
+            mDrawerLayout = findViewById(R.id.drawer_layout);
             tvlatitude = (TextView)findViewById(R.id.lat);
             tvlongitude = (TextView) findViewById(R.id.lon);
+
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+
+            ActionBar actionbar = getSupportActionBar();
+            actionbar.setDisplayHomeAsUpEnabled(true);
+            actionbar.setHomeAsUpIndicator(R.drawable.ic_menu_black_24dp);
+
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            navigationView.setNavigationItemSelectedListener(
+                    new NavigationView.OnNavigationItemSelectedListener() {
+                        @Override
+                        public boolean onNavigationItemSelected(MenuItem menuItem) {
+                            // set item as selected to persist highlight
+                            menuItem.setChecked(true);
+                            // close drawer when item is tapped
+//                            mDrawerLayout.closeDrawers();
+
+                            // Add code here to update the UI based on the item selected
+                            // For example, swap UI fragments here
+
+                            return true;
+                        }
+                    });
+            mDrawerLayout.addDrawerListener(
+                    new DrawerLayout.DrawerListener() {
+                        @Override
+                        public void onDrawerSlide(View drawerView, float slideOffset) {
+                            // Respond when the drawer's position changes
+                        }
+
+                        @Override
+                        public void onDrawerOpened(View drawerView) {
+                            // Respond when the drawer is opened
+                        }
+
+                        @Override
+                        public void onDrawerClosed(View drawerView) {
+                            // Respond when the drawer is closed
+                        }
+
+                        @Override
+                        public void onDrawerStateChanged(int newState) {
+                            // Respond when the drawer motion state changes
+                        }
+                    }
+            );
 
 //            getlocation();
             checkConnect();
@@ -76,6 +132,21 @@ import retrofit2.Response;
             //loge total rows in database
     }
 
+        @Override
+        public boolean onCreateOptionsMenu(Menu menu) {
+            getMenuInflater().inflate(R.menu.drawer_view, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onOptionsItemSelected(MenuItem item) {
+            switch (item.getItemId()) {
+                case android.R.id.home:
+                    mDrawerLayout.openDrawer(GravityCompat.START);
+                    return true;
+            }
+            return super.onOptionsItemSelected(item);
+        }
         private void getlocation(){
             locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -108,9 +179,9 @@ import retrofit2.Response;
                     db = DatabaseHelper.getInstance(MainActivity.this);
                     if (ret == true) {
                         db.insertLocation(new Data(1,"on",latitude, longitude));
-                        for(Data w: db.getData("on")){
-                            Log.e(TAG, "onCreate: on " + w.getId() + ", " + w.getStatus() + ", " + w.getLatitude()+", "+ w.getLongitude());
-                        }
+//                        for(Data w: db.getData("on")){
+//                            Log.e(TAG, "onCreate: on " + w.getId() + ", " + w.getStatus() + ", " + w.getLatitude()+", "+ w.getLongitude());
+//                        }
 
                     } else {
                         db.insertLocation(new Data(1,"off",latitude, longitude));
@@ -141,50 +212,25 @@ import retrofit2.Response;
                 @Override
                 public void onTick(long l) {
                     gettime();
-//                    getlocation();
+                    getlocation();
                     db = DatabaseHelper.getInstance(MainActivity.this);
-                    if (ret == true) {
-                        LocationTracker tracker1 = new LocationTracker(MainActivity.this);
-                        tvlatitude.setText("Vĩ độ: " + tracker1.getLatitude());
-                        tvlongitude.setText("KInh độ: " + tracker1.getLongitude());
-                        latitude = tracker1.getLatitude();
-                        longitude = tracker1.getLongitude();
-                        SendLocation service = APIClient.getClient().create(SendLocation.class);
-                        Call<Post> userCall = service.getlistbusstop(imei,dt,latitude,longitude,altitude,angle,speed,loc_valid,params);
+//                        LocationTracker tracker1 = new LocationTracker(MainActivity.this);
+//                        tvlatitude.setText("Vĩ độ: " + tracker1.getLatitude());
+//                        tvlongitude.setText("KInh độ: " + tracker1.getLongitude());
+//                        latitude = tracker1.getLatitude();
+//                        longitude = tracker1.getLongitude();
+                        if (latitude != 0.0 || longitude != 0.0 ){
+                            SendLocation service = APIClient.getClient().create(SendLocation.class);
+                            Call<Post> userCall = service.getlistbusstop(imei,dt,latitude,longitude,altitude,angle,speed,loc_valid,params);
 
-                        userCall.enqueue(new Callback<Post>() {
-                            @Override
-                            public void onResponse(Call<Post> call, Response<Post> response) {
-                                //onSignupSuccess();
-                                if (response.isSuccessful()) {
-                                    Log.d("onResponse", "" + response.body().toString());
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "Failed!!!", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Call<Post> call, Throwable t) {
-                                Log.d("Failed: ", t.toString());
-                            }
-                        });
-
-                        //get location in sqlite
-                        List<Data> list = db.getData("off");
-                        for (Data item : list) {
-                            lat = item.getLatitude();
-                            lon = item.getLongitude();
-                            SendLocation service1 = APIClient.getClient().create(SendLocation.class);
-                            Call<Post> userCall1 = service1.getlistbusstop(imei, dt, lat, lon, altitude, angle, speed, loc_valid, params);
-                            userCall1.enqueue(new Callback<Post>() {
+                            userCall.enqueue(new Callback<Post>() {
                                 @Override
                                 public void onResponse(Call<Post> call, Response<Post> response) {
                                     //onSignupSuccess();
                                     if (response.isSuccessful()) {
-                                        Log.e("onResponse", "Đã gửi dữ liệu thành công");
-                                        Toast.makeText(getApplicationContext(), "Đã gửi dữ liệu thành công!", Toast.LENGTH_SHORT).show();
+                                        Log.d("onResponse", "" + response.body().toString());
                                     } else {
-                                        Log.e("onResponse", "Dữ liệu chưa được gửi: ");
+                                        Toast.makeText(getApplicationContext(), "Failed!!!", Toast.LENGTH_SHORT).show();
                                     }
                                 }
 
@@ -193,18 +239,41 @@ import retrofit2.Response;
                                     Log.d("Failed: ", t.toString());
                                 }
                             });
-                            db.updateLocation(new Data(1, "on",latitude,longitude));
+                        }
+                        //get location in sqlite
+                        List<Data> list = db.getData("off");
+                        if (list.size() != 0){
+                            for (Data item : list) {
+                                lat = item.getLatitude();
+                                lon = item.getLongitude();
+                                if (lat != 0.0 && lon != 0.0 ){
+                                    SendLocation service = APIClient.getClient().create(SendLocation.class);
+                                    Call<Post> userCall = service.getlistbusstop(imei,dt,lat,lon,altitude,angle,speed,loc_valid,params);
+
+                                    userCall.enqueue(new Callback<Post>() {
+                                        @Override
+                                        public void onResponse(Call<Post> call, Response<Post> response) {
+                                            //onSignupSuccess();
+                                            if (response.isSuccessful()) {
+                                                Log.d("onResponse", "" + response.body().toString());
+                                            } else {
+                                                Toast.makeText(getApplicationContext(), "Failed!!!", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(Call<Post> call, Throwable t) {
+                                            Log.d("Failed: ", t.toString());
+                                        }
+                                    });
+                                }
+                                for (int i = 0; i<= list.size();i++){
+                                    db.updateLocation(new Data(i, "on",latitude,longitude));
+
+                                }
+                            }
                         }
 
-                    } else {
-                        db.insertLocation(new Data(1,"off",latitude, longitude));
-                        //insert data
-                        //loge all word in database
-                        for(Data w: db.getAllLocation()){
-                            Log.e(TAG, "onCreate: " + w.getId() + ", " + w.getStatus() + ", " + w.getLatitude()+", "+ w.getLongitude());
-                        }
-                        Log.e(TAG, "onCreate: " + db.getTotalLocation());
-                    }
                 }
 
                 @Override
