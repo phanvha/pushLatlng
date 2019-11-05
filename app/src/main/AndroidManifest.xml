@@ -11,7 +11,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <uses-feature android:name="android.hardware.location.gps" />
 
     <application
@@ -22,8 +23,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Main2Activity"
+        <activity android:name=".BubbleActivity" />
+        <activity
+            android:name=".Main2Activity"
+            android:allowEmbedded="true"
+            android:documentLaunchMode="always"
             android:label="@string/TrackingLocation"
+            android:resizeableActivity="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -31,6 +37,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <meta-data
+            android:name="vn.map4d.map4dsdk.ACCESS_KEY"
+            android:value="98fd21346d83bee24dc734231f7609c9" />
 
         <receiver
             android:name="com.map4d.service.ConnectionReceiver"

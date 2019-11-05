@@ -2,11 +2,17 @@ package com.map4d.pushlatlngapp;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Person;
 import android.app.Service;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -20,9 +26,11 @@ import com.google.android.material.snackbar.Snackbar;
 import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -47,6 +55,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,6 +74,7 @@ public class Main2Activity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, LocationListener {
 
     private static final int MY_PERMISSION = 1000;
+    private static final String CHANNEL_ID = "channel";
     TextView tvlatitude, tvlongitude;
     private String imei = "BUS123001", dt = "2019-09-0809:58:00", params = "batp=100|acc=1|";
     LocationManager locationManager;
@@ -81,7 +92,12 @@ public class Main2Activity extends AppCompatActivity
     private String msg;
     private BubblesManager bubblesManager;
     private NotificationBadge manager;
+    NotificationManager notificationManager;
+    Notification.Builder builder;
+    NotificationChannel channel;
+    private PendingIntent contentIntent;
 
+    @RequiresApi(api = Build.VERSION_CODES.Q)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,20 +120,29 @@ public class Main2Activity extends AppCompatActivity
 //                addNewBubble();
 //            }
 //        });
-//
         //check permission
         if (Build.VERSION.SDK_INT >=23) {
             if (!Settings.canDrawOverlays(Main2Activity.this)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Intent intentt = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                         Uri.parse("package: " + getPackageName()));
-                startActivityForResult(intent, MY_PERMISSION);
+                startActivityForResult(intentt, MY_PERMISSION);
             }
         }
 //        }else {
 //            Intent intent  = new Intent(Main2Activity.this, Service.class);
 //            startActivity(intent);
 //        }
+        // Create bubble intent
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
+        CharSequence name = "My Channel";
+        String description = "xyz";
+        int importance = NotificationManager.IMPORTANCE_HIGH;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            channel = new NotificationChannel("1", name, importance);
+            channel.setDescription(description);
+            channel.setAllowBubbles(true);
+        }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -129,11 +154,44 @@ public class Main2Activity extends AppCompatActivity
 
         tvlatitude = (TextView)findViewById(R.id.lat);
         tvlongitude = (TextView) findViewById(R.id.lon);
-        getlocation();
-        checkConnect();
-
-        sendlocation();
+//        getlocation();
+//        checkConnect();
+//
+//        sendlocation();
         initBubble();
+    }
+
+    private void addNewBubble2() {
+        // Create bubble intent
+        Intent target = new Intent(this, BubbleActivity.class);
+        PendingIntent bubbleIntent =
+                PendingIntent.getActivity(this, 0, target, 0 /* flags */);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+        // Create bubble metadata
+        Notification.BubbleMetadata bubbleData =
+                new Notification.BubbleMetadata.Builder()
+                        .setDesiredHeight(600)
+                        .setIcon(Icon.createWithResource(this, R.drawable.avatar))
+                        .setIntent(bubbleIntent)
+                        .build();
+
+// Create notification
+        Person chatBot = new Person.Builder()
+                .setBot(true)
+                .setName("BubbleBot")
+                .setImportant(true)
+                .build();
+
+        Notification.Builder builder =
+                new Notification.Builder(this, CHANNEL_ID)
+                        .setContentIntent(contentIntent)
+                        .setSmallIcon(R.drawable.ic_small_icon)
+                        .setBubbleMetadata(bubbleData)
+                        .addPerson(chatBot);
+
+    }
+
+
     }
 
     private void initBubble() {
@@ -150,7 +208,7 @@ public class Main2Activity extends AppCompatActivity
     }
 
     private void addNewBubble() {
-        BubbleLayout bubbleLayout = (BubbleLayout) LayoutInflater.from(Main2Activity.this)
+        final BubbleLayout bubbleLayout = (BubbleLayout) LayoutInflater.from(Main2Activity.this)
                 .inflate(R.layout.bubbles_layout,null);
         manager = (NotificationBadge)bubbleLayout.findViewById(R.id.badge);
 
@@ -165,6 +223,9 @@ public class Main2Activity extends AppCompatActivity
         bubbleLayout.setOnBubbleClickListener(new BubbleLayout.OnBubbleClickListener() {
             @Override
             public void onBubbleClick(BubbleLayout bubble) {
+                Intent intenttt = new Intent(Main2Activity.this, BubbleActivity.class);
+                startActivity(intenttt);
+                finish();
                 Log.d("small icon", "clicked!!!");
             }
         });
@@ -205,7 +266,7 @@ public class Main2Activity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            addNewBubble2();
         }
 
         return super.onOptionsItemSelected(item);
