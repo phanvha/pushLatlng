@@ -13,6 +13,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Icon;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -61,10 +63,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -75,8 +79,8 @@ public class Main2Activity extends AppCompatActivity
 
     private static final int MY_PERMISSION = 1000;
     private static final String CHANNEL_ID = "channel";
-    TextView tvlatitude, tvlongitude;
-    private String imei = "BUS123001", dt = "2019-09-0809:58:00", params = "batp=100|acc=1|";
+    TextView tvlatitude, tvlongitude, tvday, tvhour;
+    private String imei = "BUS123001", dt = "2019-09-0809:58:00",hour ="01:30:00",day = "2019-09-09", params = "batp=100|acc=1|";
     LocationManager locationManager;
     Location location;
     private final int REQUEST_LOCATION = 200;
@@ -96,8 +100,13 @@ public class Main2Activity extends AppCompatActivity
     Notification.Builder builder;
     NotificationChannel channel;
     private PendingIntent contentIntent;
+    private Geocoder geocoder;
+    private List<Address> addresses;
+    private String streetName;
+    private String cityName;
+    private TextView tvstreet, tvaddress, tvnamebus, tvspeed, tvaltitude, tvangle, tvtime, tvLatitude, tvLongitude;
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,14 +114,6 @@ public class Main2Activity extends AppCompatActivity
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-                addNewBubble();
-            }
-        });
 //        Button btnadd = (Button)findViewById(R.id.fab);
 //        btnadd.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -133,16 +134,17 @@ public class Main2Activity extends AppCompatActivity
 //            startActivity(intent);
 //        }
         // Create bubble intent
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//
+//        CharSequence name = "My Channel";
+//        String description = "xyz";
+//        int importance = NotificationManager.IMPORTANCE_HIGH;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            channel = new NotificationChannel("1", name, importance);
+//            channel.setDescription(description);
+//            channel.setAllowBubbles(true);
+//        }
 
-        CharSequence name = "My Channel";
-        String description = "xyz";
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            channel = new NotificationChannel("1", name, importance);
-            channel.setDescription(description);
-            channel.setAllowBubbles(true);
-        }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -154,45 +156,69 @@ public class Main2Activity extends AppCompatActivity
 
         tvlatitude = (TextView)findViewById(R.id.lat);
         tvlongitude = (TextView) findViewById(R.id.lon);
-//        getlocation();
-//        checkConnect();
+        tvday = (TextView)findViewById(R.id.day);
+        tvhour = (TextView)findViewById(R.id.hour);
+        tvstreet = (TextView)findViewById(R.id.streets);
+        tvaddress = (TextView)findViewById(R.id.address);
+        tvaddress = (TextView)findViewById(R.id.address);
+        tvnamebus = (TextView) findViewById(R.id.tvnamebus);
+        tvangle = (TextView) findViewById(R.id.tvangle);
+        tvLatitude = (TextView) findViewById(R.id.tvlatitude);
+        tvLongitude = (TextView) findViewById(R.id.tvlongitude);
+        tvaltitude = (TextView)findViewById(R.id.tvaltitude);
+        tvtime = (TextView) findViewById(R.id.tvtime);
+        tvspeed = (TextView) findViewById(R.id.tvspeed);
+
+        tvnamebus.setText("Tên xe: "+imei);
+        tvangle.setText("Góc nhìn: "+String.valueOf(angle)+" độ");
+        tvaltitude.setText("Độ cao: "+String.valueOf(altitude)+" mét");
+        tvspeed.setText("Tốc độ: "+String.valueOf(speed)+" km/h");
+        tvtime.setText("Thời gian: "+dt);
+
+
+        getlocation();
+        gettimehour();
+        gettimeday();
+        getinfo();
+        checkConnect();
+
 //
-//        sendlocation();
-        initBubble();
+        sendlocation();
+//        initBubble();
     }
 
-    private void addNewBubble2() {
-        // Create bubble intent
-        Intent target = new Intent(this, BubbleActivity.class);
-        PendingIntent bubbleIntent =
-                PendingIntent.getActivity(this, 0, target, 0 /* flags */);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-        // Create bubble metadata
-        Notification.BubbleMetadata bubbleData =
-                new Notification.BubbleMetadata.Builder()
-                        .setDesiredHeight(600)
-                        .setIcon(Icon.createWithResource(this, R.drawable.avatar))
-                        .setIntent(bubbleIntent)
-                        .build();
-
-// Create notification
-        Person chatBot = new Person.Builder()
-                .setBot(true)
-                .setName("BubbleBot")
-                .setImportant(true)
-                .build();
-
-        Notification.Builder builder =
-                new Notification.Builder(this, CHANNEL_ID)
-                        .setContentIntent(contentIntent)
-                        .setSmallIcon(R.drawable.ic_small_icon)
-                        .setBubbleMetadata(bubbleData)
-                        .addPerson(chatBot);
-
-    }
-
-
-    }
+//    private void addNewBubble2() {
+//        // Create bubble intent
+//        Intent target = new Intent(this, BubbleActivity.class);
+//        PendingIntent bubbleIntent =
+//                PendingIntent.getActivity(this, 0, target, 0 /* flags */);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+//            // Create bubble metadata
+//            Notification.BubbleMetadata bubbleData =
+//                    new Notification.BubbleMetadata.Builder()
+//                            .setDesiredHeight(600)
+//                            .setIcon(Icon.createWithResource(this, R.drawable.avatar))
+//                            .setIntent(bubbleIntent)
+//                            .build();
+//
+//    // Create notification
+//            Person chatBot = new Person.Builder()
+//                    .setBot(true)
+//                    .setName("BubbleBot")
+//                    .setImportant(true)
+//                    .build();
+//
+//            Notification.Builder builder =
+//                    new Notification.Builder(this, CHANNEL_ID)
+//                            .setContentIntent(contentIntent)
+//                            .setSmallIcon(R.drawable.ic_small_icon)
+//                            .setBubbleMetadata(bubbleData)
+//                            .addPerson(chatBot);
+//
+//        }
+//
+//
+//    }
 
     private void initBubble() {
         bubblesManager = new BubblesManager.Builder(this)
@@ -266,7 +292,7 @@ public class Main2Activity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            addNewBubble2();
+
         }
 
         return super.onOptionsItemSelected(item);
@@ -279,9 +305,19 @@ public class Main2Activity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_home) {
+
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
-
+            Intent intent = new Intent(getApplicationContext(), BubbleActivity.class);
+//            Bundle bundle = new Bundle();
+//            bundle.putString("namebus", imei);
+//            bundle.putInt("speed",speed);
+//            bundle.putString("namebus", imei);
+//            bundle.putString("namebus", imei); // Truyền một String
+//            bundle.putInt("Key_2", 5);                      // Truyền một Int
+//            bundle.putBoolean("Key_3", true);               // Truyền một Boolean
+//            intent.putExtras(bundle);
+            startActivity(intent);
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_tools) {
@@ -311,6 +347,8 @@ public class Main2Activity extends AppCompatActivity
             if (location != null) {
                 tvlatitude.setText(String.valueOf(location.getLatitude()));
                 tvlongitude.setText(String.valueOf(location.getLongitude()));
+                tvLatitude.setText("Vĩ độ: "+String.valueOf(location.getLatitude()));
+                tvLongitude.setText("Kinh độ: "+String.valueOf(location.getLongitude()));
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
                 Log.d("lat: ",latitude.toString());
@@ -322,7 +360,7 @@ public class Main2Activity extends AppCompatActivity
         }
     }
     private void checkConnect() {
-        CountDownTimer countDownTimer = new CountDownTimer(86400000, 100) {
+        CountDownTimer countDownTimer = new CountDownTimer(86400000, 1000) {
             @Override
             public void onTick(long l) {
                 getlocation();
@@ -331,7 +369,7 @@ public class Main2Activity extends AppCompatActivity
                 if (ret == true) {
                     Log.d("time ",dt);
                     db.insertLocation(new Data(1,"on",latitude, longitude,dt));
-                        for(Data w: db.getAllLocation()){
+                        for(Data w: db.getData("on")){
                             Log.e(TAG, "onCreate: on " + w.getId() + ", " + w.getStatus() + ", " + w.getLatitude()+", "+ w.getLongitude()+","+w.getTime());
                         }
 
@@ -344,6 +382,9 @@ public class Main2Activity extends AppCompatActivity
                     }
 //
                 }
+                for(Data w: db.getAllLocation()){
+                    Log.e(TAG, "on Sqlite: " + w.getId() + ", " + w.getStatus() + ", " + w.getLatitude()+", "+ w.getLongitude()+","+w.getTime());
+                }
             }
 
             @Override
@@ -352,12 +393,59 @@ public class Main2Activity extends AppCompatActivity
             }
         };
         countDownTimer.start();
+
     }
     private void gettime(){
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-ddHH:mm:ss");
         dateFormatter.setLenient(false);
         Date today = new Date();
         dt = dateFormatter.format(today);
+    }
+    private void gettimehour(){
+        DateFormat dateFormatter = new SimpleDateFormat("HH:mm:ss");
+        dateFormatter.setLenient(false);
+        Date today = new Date();
+        hour = dateFormatter.format(today);
+        tvhour.setText(hour);
+    }
+    private void gettimeday(){
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
+        dateFormatter.setLenient(false);
+        Date today = new Date();
+        day = dateFormatter.format(today);
+        tvday.setText(day);
+
+    }
+    private void getinfo(){
+        getlocation();
+        geocoder = new Geocoder(Main2Activity.this, Locale.getDefault());
+        try {
+
+            addresses =  geocoder.getFromLocation(latitude,longitude,1);
+            String address = addresses.get(0).getAddressLine(0);
+            tvaddress.setText(address);
+            String streets = addresses.get(0).getThoroughfare();
+            tvstreet.setText(streets);
+
+            String area = addresses.get(0).getLocality();
+
+            String city = addresses.get(0).getAdminArea();
+
+            String country = addresses.get(0).getCountryName();
+
+            String postalcode = addresses.get(0).getPostalCode();
+
+            streetName = streets;
+
+            cityName = city;
+
+            Toast.makeText(getApplicationContext(), streets, Toast.LENGTH_LONG).show();
+
+        } catch (IOException e) {
+
+            e.printStackTrace();
+
+        }
     }
     private void sendlocation(){
         CountDownTimer countDownTimer = new CountDownTimer(86400000, 1000) {
@@ -409,7 +497,7 @@ public class Main2Activity extends AppCompatActivity
                                     if (response.isSuccessful()) {
                                         Log.d("onResponse", "" + response.body().toString());
                                     } else {
-                                        Toast.makeText(getApplicationContext(), "Failed!!!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getApplicationContext(), "Không thể gửi giữ liệu", Toast.LENGTH_SHORT).show();
                                     }
                                 }
 
@@ -438,8 +526,8 @@ public class Main2Activity extends AppCompatActivity
 
     @Override
     public void onLocationChanged(Location location) {
-        tvlatitude.setText("latitude: "+String.valueOf(location.getLatitude()));
-        tvlongitude.setText("longitude: "+String.valueOf(location.getLongitude()));
+        tvlatitude.setText(""+location.getLatitude());
+        tvlongitude.setText(""+location.getLongitude());
         //        latitude = location.getLatitude();
         //        longitude = location.getLongitude();
         //        getAddressFromLocation(location, getApplicationContext(), new GeoCoderHandler());

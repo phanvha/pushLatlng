@@ -23,7 +23,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".BubbleActivity" />
+        <activity android:name=".SplashActivity"></activity>
+        <activity android:name=".BubbleActivity"
+            android:label="Map" />
         <activity
             android:name=".Main2Activity"
             android:allowEmbedded="true"
@@ -37,6 +39,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <meta-data
             android:name="vn.map4d.map4dsdk.ACCESS_KEY"
             android:value="98fd21346d83bee24dc734231f7609c9" />

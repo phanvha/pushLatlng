@@ -17,4 +17,8 @@
     <string name="menu_share">Share</string>
     <string name="menu_send">Send</string>
     <string name="TrackingLocation">Tracking Location</string>
+    <string name="action_choiseMap">3D Map</string>
+    <string name="Map">Show in Map</string>
+    <string name="tool">Công cụ</string>
+    <string name="chitiet">Chi tiết</string>
 </resources>

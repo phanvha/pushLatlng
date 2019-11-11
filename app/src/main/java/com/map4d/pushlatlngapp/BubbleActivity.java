@@ -9,6 +9,8 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -35,7 +37,12 @@ public class BubbleActivity extends AppCompatActivity implements OnMapReadyCallb
     Location location;
     private Double latitude, lat, longitude, lon;
     private LatLng latLng;
-
+    private String imei = "BUS123001", dt = "2019-09-0809:58:00",hour ="01:30:00",day = "2019-09-09", params = "batp=100|acc=1|";
+    private int altitude = 100;
+    private int angle = 45;
+    private int speed = 60;
+    private int loc_valid = 1;
+    private TextView tvstreet, tvaddress, tvnamebus, tvspeed, tvaltitude, tvangle, tvtime, tvLatitude, tvLongitude;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,22 +50,53 @@ public class BubbleActivity extends AppCompatActivity implements OnMapReadyCallb
         setContentView(R.layout.activity_bubble);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+
         mapView = findViewById(R.id.map2D);
         mapView.getMapAsync(this);
 
 
         textView = findViewById(R.id.textView);
+        tvnamebus = (TextView) findViewById(R.id.tvnamebus);
+        tvangle = (TextView) findViewById(R.id.tvangle);
+        tvLatitude = (TextView) findViewById(R.id.tvlatitude);
+        tvLongitude = (TextView) findViewById(R.id.tvlongitude);
+        tvaltitude = (TextView)findViewById(R.id.tvaltitude);
+        tvtime = (TextView) findViewById(R.id.tvtime);
+        tvspeed = (TextView) findViewById(R.id.tvspeed);
 
-        FloatingActionButton fab = findViewById(R.id.fab1);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        tvnamebus.setText("Tên xe: "+imei);
+        tvangle.setText("Góc nhìn: "+String.valueOf(angle)+" độ");
+        tvaltitude.setText("Độ cao: "+String.valueOf(altitude)+" mét");
+        tvspeed.setText("Tốc độ: "+String.valueOf(speed)+" km/h");
+        tvtime.setText("Thời gian: "+dt);
 
+    }
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menububble, menu);
+        return true;
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
 
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_choiseMap) {
+
+        }
+
+        return super.onOptionsItemSelected(item);
     }
     private void getlocation(){
         locationManager = (LocationManager) getSystemService(Service.LOCATION_SERVICE);
@@ -74,6 +112,8 @@ public class BubbleActivity extends AppCompatActivity implements OnMapReadyCallb
             if (location != null) {
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
+                tvLatitude.setText("Vĩ độ: "+String.valueOf(location.getLatitude()));
+                tvLongitude.setText("Kinh độ: "+String.valueOf(location.getLongitude()));
                 Log.d("lat: ",latitude.toString());
                 Log.d("lon: ",longitude.toString());
                 //                getAddressFromLocation(location, getApplicationContext(), new GeoCoderHandler());
