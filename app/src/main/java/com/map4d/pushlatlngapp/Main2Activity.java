@@ -122,13 +122,7 @@ public class Main2Activity extends AppCompatActivity
 //            }
 //        });
         //check permission
-        if (Build.VERSION.SDK_INT >=23) {
-            if (!Settings.canDrawOverlays(Main2Activity.this)) {
-                Intent intentt = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package: " + getPackageName()));
-                startActivityForResult(intentt, MY_PERMISSION);
-            }
-        }
+
 //        }else {
 //            Intent intent  = new Intent(Main2Activity.this, Service.class);
 //            startActivity(intent);
@@ -181,8 +175,6 @@ public class Main2Activity extends AppCompatActivity
         gettimeday();
         getinfo();
         checkConnect();
-
-//
         sendlocation();
 //        initBubble();
     }
@@ -438,8 +430,6 @@ public class Main2Activity extends AppCompatActivity
             streetName = streets;
 
             cityName = city;
-
-            Toast.makeText(getApplicationContext(), streets, Toast.LENGTH_LONG).show();
 
         } catch (IOException e) {
 
